@@ -1,13 +1,15 @@
 import React, { useState } from "react";
 import { axiosWithAuth } from "../utils/axiosWithAuth";
 
+import axios from 'axios'
+
 
 const initialColor = {
   color: "",
   code: { hex: "" }
 };
 
-const ColorList = ({ colors, updateColors, history }) => {
+const ColorList = ({ colors, updateColors }) => {
   console.log('THIS IS INSIDE COLOR LIST', colors);
   const [editing, setEditing] = useState(false);
   const [colorToEdit, setColorToEdit] = useState(initialColor);
@@ -19,23 +21,33 @@ const ColorList = ({ colors, updateColors, history }) => {
 
   const saveEdit = e => {
     e.preventDefault();
-    // Make a put request to save your updated color
-    // think about where will you get the id from...
-    // where is is saved right now? props
-    console.log('THIS IS INSIDE saveEDIT', colorToEdit);
     axiosWithAuth()
-      .put(`http://localhost:5000/api/colors/:id${colorToEdit.id}`, colorToEdit)
+      .put(`http://localhost:5000/api/colors/:${colorToEdit.id}`, colorToEdit)
       .then(res => {
         console.log('Success!', res);
+        let newColors = colors.map(e => {
+          if (e.id === colorToEdit.id) {
+            return e = res.data
+          } else return e
+        })
+        updateColors(newColors)
       })
       .catch(err => {
         console.log('What is HAPPENING', err, err.response);
       });
-
   };
 
   const deleteColor = color => {
     // make a delete request to delete this color
+    console.log('This should be a color ID', color.id)
+    axiosWithAuth()
+      .delete(`http://localhost:5000/api/colors/:${color.id}`)
+      .then(res => {
+        console.log('Deleted!', res);
+        let newColors = colors.filter(e => e.id !== color.id)
+        updateColors(newColors)
+      })
+      .catch(e => console.log(e));
   };
 
   return (
@@ -46,7 +58,7 @@ const ColorList = ({ colors, updateColors, history }) => {
           <li key={color.color} onClick={() => editColor(color)}>
             <span>
               <span className="delete" onClick={() => deleteColor(color)}>
-                x
+                XXX
               </span>{" "}
               {color.color}
             </span>
